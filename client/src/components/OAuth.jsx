@@ -25,7 +25,7 @@ const res = await fetch(`/api/auth/google`, {
     }),
   });
 const data = await res.json();
-dispatch(signInSuccess(data));
+dispatch(signInSuccess(data.user));
   } catch (error) {
       console.error('Error during Google OAuth:', error);
 dispatch(signInFailure(error.message));

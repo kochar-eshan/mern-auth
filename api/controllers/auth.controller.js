@@ -1,6 +1,6 @@
 import User from '../models/user.model.js';
 import bcryptjs from 'bcryptjs';
-import { errorHandler } from '../utils/error.js';   
+import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
 export const signup = async (req, res, next) => {
@@ -18,8 +18,8 @@ export const signup = async (req, res, next) => {
 };
 
 export const signin = async (req, res, next) => {
-  const { email, password } = req.body; 
-    try {
+  const { email, password } = req.body;
+  try {
     const user = await User.findOne({ email });
     if (!user) {
       return next(errorHandler({ statusCode: 404, message: 'User not found' }));
@@ -27,54 +27,98 @@ export const signin = async (req, res, next) => {
     const isPasswordValid = await bcryptjs.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return next(errorHandler({ statusCode: 403, message: 'Wrong credentials' }));
+      return next(
+        errorHandler({ statusCode: 403, message: 'Wrong credentials' }),
+      );
     }
 
-const token = jwt.sign({ id: user._id  }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-res.cookie("access_token",token,{
-      httpOnly:true,
-    }).status(200).json({ user:{id:user._id, username:user.username, email:user.email}, message: 'Signin successful', success: true });
-
+    res
+      .cookie('access_token', token, {
+        httpOnly: true,
+      })
+      .status(200)
+      .json({
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          profilePicture: user.profilePicture,
+        },
+        message: 'Signin successful',
+        success: true,
+      });
   } catch (err) {
     next(err);
   }
 };
 
 export const googleAuth = async (req, res, next) => {
-try {
-  const user = await User.findOne({ email: req.body.email });
-  if (user) {
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET,);
+  
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
-    const { password : hashedPassword, ...rest} = user._doc;
-const expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-res.cookie("access_token", token, {
-      httpOnly: true,
-      expires: expiryDate,
-    }).status(200).json({ user: { id: user._id, username: user.username, email: user.email }, message: 'Signin successful', success: true });
-  } else {
-const generatedPassword = Math.random().toString(36).slice(-8);
-  const hashedPassword =  bcryptjs.hashSync(generatedPassword, 10);
+      const { password: hashedPassword, ...rest } = user._doc;
+      const expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      res
+        .cookie('access_token', token, {
+          httpOnly: true,
+          expires: expiryDate,
+        })
+        .status(200)
+        .json({
+          user: {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            profilePicture: user.profilePicture,
+          },
+          message: 'Signin successful',
+          success: true,
+        });
+    } else {
+      const generatedPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
 
-  const newUser = new User({ username: req.body.name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4), email: req.body.email, password: hashedPassword , profilePicture: req.body.photo });
+      const newUser = new User({
+        username:
+          req.body.name.split(' ').join('').toLowerCase() +
+          Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        password: hashedPassword,
+        profilePicture: req.body.photo,
+      });
 
-  await newUser.save();
+      await newUser.save();
 
-  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
 
-  const { password : hashedPasswordNew, ...rest} = newUser._doc;
+      const { password: hashedPasswordNew, ...rest } = newUser._doc;
 
-const expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      const expiryDate = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-res.cookie("access_token", token, {
-      httpOnly: true,
-      expires: expiryDate,
-    }).status(200).json({ user: { id: newUser._id, username: newUser.username, email: newUser.email }, message: 'Signin successful', success: true });
-
-}
-} catch (error) {
-  next(error);
-}
-}
+      res
+        .cookie('access_token', token, {
+          httpOnly: true,
+          expires: expiryDate,
+        })
+        .status(200)
+        .json({
+          user: {
+            id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            profilePicture: newUser.profilePicture,
+          },
+          message: 'Signin successful',
+          success: true,
+        });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
