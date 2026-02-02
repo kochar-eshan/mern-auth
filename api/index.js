@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 // Catch-all route (Express 5 SAFE)
-app.get('/*', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
