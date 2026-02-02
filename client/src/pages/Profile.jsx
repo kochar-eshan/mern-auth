@@ -5,7 +5,11 @@ import {
   updateUserStart,
   updateUserSuccess,
   updateUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure,
 } from '../../redux/user/userSlice';
+import { createNextState } from '@reduxjs/toolkit';
 export default function Profile() {
   const fileRef = useRef(null);
   const [image, setImage] = useState(undefined);
@@ -62,6 +66,25 @@ setUpdateSuccess(true);
       dispatch(updateUserFailure(err.message));
     }
   };
+
+const handleDeleteAccount = async () => {
+try {
+  dispatch(deleteUserStart());
+  const res = await fetch(`/api/user/delete/${currentUser.id}`, {
+    method: 'DELETE',
+  });
+  const data = await res.json();
+  if (data.success === false) {
+    dispatch(deleteUserFailure(data.message));
+  } else {
+    dispatch(deleteUserSuccess());
+  }
+} catch (error) {
+ dispatch(deleteUserFailure(error.message));
+}
+}
+
+
   return (
     <div className='p-3 maw-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
@@ -114,16 +137,17 @@ setUpdateSuccess(true);
         </button>
 
         <div className='flex justify-between mt-5'>
-          <span className='cursor-pointer text-red-700 hover:underline'>
+          <span className='cursor-pointer text-red-700 hover:underline' onClick={handleDeleteAccount}>
             Delete Account
           </span>
 
           <span className='cursor-pointer text-red-700 hover:underline'>
             Sign Out
           </span>
-           <p className='text-red-700  mt-5'>{error?"Error updating profile":null}</p> 
-<p className='text-green-700 mt-5'>{updateSuccess && 'User is updated successfully!'}</p>
+
         </div>
+           <p className='text-red-700  mt-5 '>{error?"Error updating profile":null}</p> 
+<p className='text-green-700 mt-5 '>{updateSuccess && 'User is updated successfully!'}</p>
       </form>
     </div>
   );
