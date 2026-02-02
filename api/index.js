@@ -10,34 +10,38 @@ dotenv.config();
 
 mongoose
   .connect(process.env.MONGO)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-  });
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 const __dirname = path.resolve();
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, '/client/dist')));
-app.use('*', (req, res, next) => {
-res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// API routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 
+// Serve frontend
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+// Catch-all route (Express 5 SAFE)
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
+
+// Error handler (LAST)
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
-  return res.status(statusCode).json({ message, success: false });
+  res.status(statusCode).json({ message, success: false });
+});
+
+// Start server (ABSOLUTELY LAST)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
