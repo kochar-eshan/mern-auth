@@ -99,7 +99,7 @@ export default function Profile() {
   };
 
   return (
-    <div className='p-3 maw-w-lg mx-auto'>
+    <div className='p-3 max-w-3xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
       <form
         className='flex flex-col max-w-md mx-auto border-2 border-slate-400 p-5 rounded-lg'

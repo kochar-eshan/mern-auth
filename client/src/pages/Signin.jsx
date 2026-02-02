@@ -49,7 +49,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className='p-3 max-w-lg mx-auto border-slate-400 border-2 rounded-lg mt-10'>
+    <div className='p-3 max-w-2xl mx-auto border-slate-400 border-2 rounded-lg mt-10 '>
       <h1 className='text-3xl text-center font-semibold my-7'>SignIn</h1>
       <form className='flex flex-col gap-4 ' onSubmit={handleSubmit}>
         <input
