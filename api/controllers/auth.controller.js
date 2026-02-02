@@ -57,7 +57,6 @@ export const signin = async (req, res, next) => {
 };
 
 export const googleAuth = async (req, res, next) => {
-  
   try {
     const user = await User.findOne({ email: req.body.email });
     if (user) {
@@ -119,6 +118,16 @@ export const googleAuth = async (req, res, next) => {
           success: true,
         });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+export const signout = (res, next) => {
+  try {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+    });
+    res.status(200).json({ message: 'User signed out successfully' });
   } catch (error) {
     next(error);
   }

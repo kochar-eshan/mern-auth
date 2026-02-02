@@ -8,17 +8,17 @@ import {
   deleteUserStart,
   deleteUserSuccess,
   deleteUserFailure,
+ signOutUserSuccess,
 } from '../../redux/user/userSlice';
-import { createNextState } from '@reduxjs/toolkit';
 export default function Profile() {
   const fileRef = useRef(null);
   const [image, setImage] = useState(undefined);
   const [formData, setFormData] = useState(null);
   const { currentUser } = useSelector((state) => state.user);
-  const { loading,error } = useSelector((state) => state.user);
+  const { loading, error } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
-const [updateSuccess,setUpdateSuccess]=useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   const handleFileUpload = async (file) => {
     console.log('Uploading file:', file);
     // Implement your file upload logic here
@@ -53,13 +53,15 @@ const [updateSuccess,setUpdateSuccess]=useState(false);
       if (data.success === false) {
         dispatch(updateUserFailure(data.message));
       } else {
-        dispatch(updateUserSuccess({
-id:data.updatedUser._id,
-username:data.updatedUser.username,
-email:data.updatedUser.email,
-profilePicture:data.updatedUser.profilePicture
-        }));
-setUpdateSuccess(true);
+        dispatch(
+          updateUserSuccess({
+            id: data.updatedUser._id,
+            username: data.updatedUser.username,
+            email: data.updatedUser.email,
+            profilePicture: data.updatedUser.profilePicture,
+          }),
+        );
+        setUpdateSuccess(true);
       }
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -67,23 +69,34 @@ setUpdateSuccess(true);
     }
   };
 
-const handleDeleteAccount = async () => {
-try {
-  dispatch(deleteUserStart());
-  const res = await fetch(`/api/user/delete/${currentUser.id}`, {
-    method: 'DELETE',
-  });
-  const data = await res.json();
-  if (data.success === false) {
-    dispatch(deleteUserFailure(data.message));
-  } else {
-    dispatch(deleteUserSuccess());
-  }
-} catch (error) {
- dispatch(deleteUserFailure(error.message));
-}
-}
+  const handleDeleteAccount = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+      } else {
+        dispatch(deleteUserSuccess());
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
 
+  const handleSignOut = async () => {
+    try {
+       await fetch('/api/auth/signout', {
+        method: 'GET',
+      });
+
+        dispatch(signOutUserSuccess());
+    } catch (error) {
+      console.log('Error signing out:', error);
+    }
+  };
 
   return (
     <div className='p-3 maw-w-lg mx-auto'>
@@ -137,17 +150,28 @@ try {
         </button>
 
         <div className='flex justify-between mt-5'>
-          <span className='cursor-pointer text-red-700 hover:underline' onClick={handleDeleteAccount}>
+          <span
+            className='cursor-pointer text-red-700 hover:underline'
+            onClick={handleDeleteAccount}
+            type='button'
+          >
             Delete Account
           </span>
 
-          <span className='cursor-pointer text-red-700 hover:underline'>
+          <span
+            className='cursor-pointer text-red-700 hover:underline'
+            onClick={handleSignOut}
+            type='button'
+          >
             Sign Out
           </span>
-
         </div>
-           <p className='text-red-700  mt-5 '>{error?"Error updating profile":null}</p> 
-<p className='text-green-700 mt-5 '>{updateSuccess && 'User is updated successfully!'}</p>
+        <p className='text-red-700  mt-5 '>
+          {error ? 'Error updating profile' : null}
+        </p>
+        <p className='text-green-700 mt-5 '>
+          {updateSuccess && 'User is updated successfully!'}
+        </p>
       </form>
     </div>
   );
